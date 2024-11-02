@@ -21,20 +21,23 @@ export async function GET({ url, locals }) {
 
 	let response = await getLineForStudy( moves, new Date(), lastLine );
 
-	// grab title of move source
-	const finalMoveId = response.line[ response.line.length-1 ].id;
-	const finalMove = await prisma.move.findUniqueOrThrow({
-		where: {id: finalMoveId },
-		select: {
-			studies: {
-				select: { name: true },
+	if(response.line.length > 0) {
+		// grab title of move source
+		const finalMoveId = response.line[ response.line.length-1 ].id;
+		const finalMove = await prisma.move.findUniqueOrThrow({
+			where: {id: finalMoveId },
+			select: {
+				studies: {
+					select: { name: true },
+				}
 			}
+		});
+		if ( finalMove.studies.length > 0 ) {
+			response.source_name = finalMove.studies[0].name;
+		} else {
+			// TODO handle pgn case
+			response.source_name = 'from PGN import';
 		}
-	});
-	if ( finalMove.studies.length > 0 ) {
-		response.source_name = finalMove.studies[0].name;
-	} else {
-		// TODO handle pgn case
 	}
 
 	return json(response);

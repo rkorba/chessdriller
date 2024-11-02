@@ -104,6 +104,11 @@ export async function getLineForStudy( repertoire: Move[], now: Date, lastLineId
 	if ( line.length > 0 ) {
 		return { line, start_ix: 0, due_ix: lineToDueIx(line,now), num_due_moves };
 	}
+	line = pickRandomLine(repertoire, dueMoves, repForWhite, nextMoveIsOwn);
+        if ( line.length > 0 ) {
+                return { line, start_ix: 0, due_ix: lineToDueIx(line,now), num_due_moves };
+        }
+
 	// Black or White
 	repForWhite = ! repForWhite;
 	nextMoveIsOwn = ! nextMoveIsOwn;
@@ -111,10 +116,57 @@ export async function getLineForStudy( repertoire: Move[], now: Date, lastLineId
 	if ( line.length > 0 ) {
 		return { line, start_ix: 0, due_ix: lineToDueIx(line,now), num_due_moves };
 	}
-
+	line = pickRandomLine(repertoire, dueMoves, repForWhite, nextMoveIsOwn);
+        if ( line.length > 0 ) {
+                return { line, start_ix: 0, due_ix: lineToDueIx(line,now), num_due_moves };
+        }
 
 	throw new Error( 'No line found despite due moves existing' );
 }
+
+function pickRandomLine( repertoire: Move[], dueMoves: Move[], repForWhite: boolean, nextMoveIsOwn: boolean): MoveWithPossibleBranches[] {
+
+	const candidates: Move[] = dueMoves.filter( (m) => m.repForWhite === repForWhite);
+	if (candidates.length == 0)
+		return [];
+
+	let movesSoFar: Move[] = [];
+	const pickedMove: Move = randomElement(candidates);
+
+	// collect line leading to that move
+	movesSoFar.push(pickedMove);
+	let move: Move = pickedMove;
+	while( true ) {
+		const foundMoves: Move[] = repertoire.filter( (m) =>
+        	        m.repForWhite === repForWhite &&
+                	m.toFen === move.fromFen
+	        );
+		if (foundMoves.length == 0)
+			break;
+		const m: Move = randomElement(foundMoves);
+		movesSoFar.push(m);
+		move = m;
+	}
+
+	movesSoFar = movesSoFar.reverse();
+
+	// collect and add a line until the end
+	move = pickedMove;
+        while( true ) {
+                const foundMoves: Move[] = repertoire.filter( (m) =>
+                        m.repForWhite === repForWhite &&
+                        m.fromFen === move.toFen
+                );
+                if (foundMoves.length == 0)
+                        break;
+                const m: Move = randomElement(foundMoves);
+                movesSoFar.push(m);
+                move = m;
+        }
+
+	return movesSoFar;
+}
+
 
 // array of indices of the due moves in line
 function lineToDueIx( line: MoveWithPossibleBranches[], now: Date ): number[] {

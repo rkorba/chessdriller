@@ -21,8 +21,8 @@ export function pgndbNumChapters( pgndb ) {
 // Converts text from single PGN game to a moves-list.
 // Exported only as a test utility.
 export function singlePgnToMoves( pgn_content, repForWhite ) {
-	const cmpgn_moves = singlePgnToCMPgnMoves( pgn_content );
-	return chessHistoryToMoves( cmpgn_moves, repForWhite );
+	const cmpgn_history = singlePgnToCMPgnMoves( pgn_content );
+	return chessHistoryToMoves( cmpgn_history.setUpFen, cmpgn_history.moves, repForWhite );
 }
 
 function singlePgnToCMPgnMoves( pgn_content ) {
@@ -38,28 +38,28 @@ function singlePgnToCMPgnMoves( pgn_content ) {
 	// Empty (zero moves) PGNs are invalid, but we try to handle them since
 	// Lichess can produce them, in particular as a chapter of a study.
 	if ( pgn_content.match(/^\[.*?\]\s*(\*|1-0|0-1|1\/2-1\/2)\s*$/m) ) {
-		return [];
+		return {moves: []};
 	}
 
 	const cmpgn = new Pgn( pgn_content );
-	return cmpgn.history.moves;
+	return cmpgn.history;
 }
 
 // Traverse all cm-pgn moves, including variations, and returns moves-list
-function chessHistoryToMoves( history, repForWhite ) {
+function chessHistoryToMoves( setUpFen, history, repForWhite ) {
 	const moves = [];
 	for ( const move of history ) {
 		const ownMove = ( repForWhite && move.color == 'w' || !repForWhite && move.color == 'b' );
 		moves.push( {
 			repForWhite,
 			ownMove,
-			fromFen: normalize_fen( move.previous ? move.previous.fen : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' ),
+			fromFen: normalize_fen( move.previous ? move.previous.fen : (setUpFen ? setUpFen : 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1') ),
 			toFen:   normalize_fen(move.fen),
 			moveSan: move.san,
 		} );
 		// traverse variations
 		for ( const variation of move.variations ) {
-			const variation_moves = chessHistoryToMoves( variation, repForWhite );
+			const variation_moves = chessHistoryToMoves( setUpFen, variation, repForWhite );
 			moves.push( ...variation_moves );
 		}
 	}

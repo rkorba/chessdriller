@@ -22,7 +22,7 @@
 	export let start_move_ix; // move index (of line[]) for the first move to show; fast-forward to that one
 	let current_move_i = 0;
 	let is_mounted = false;
-	$: orientation = line && line[0].ownMove ? 'white' : 'black';
+	$: orientation = line && line[0].repForWhite ? 'white' : 'black';
 	let container;
 	
 	export function getOrientation() {

@@ -133,7 +133,7 @@ export function makePreviewFen( pgn_db ) {
 }
 
 
-// Canonicalise FEN by removing last three elements: en passant square, half-move clock and fullmove number. see README
+// set last two FEN elements to default: half-move clock and fullmove number.
 function normalize_fen( fen ) {
-	return fen.replace(/ (-|[a-h][1-8]) \d+ \d+$/, '' );
+	return fen.replace(/ \d+ \d+$/, ' 0 1' );
 }

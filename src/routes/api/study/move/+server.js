@@ -210,5 +210,9 @@ function datetime_in_n_minutes( n ) {
 function date_in_n_days( n ) {
 	let date = new Date();
 	date.setDate( date.getDate() + n );
+	if( n > 0) {
+		// set 3 hours back to allow fixed daily training time
+		date.setTime( date.getTime() - 3*60*60*1000 );
+	}
 	return date;
 }

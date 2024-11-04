@@ -210,6 +210,5 @@ function datetime_in_n_minutes( n ) {
 function date_in_n_days( n ) {
 	let date = new Date();
 	date.setDate( date.getDate() + n );
-	date.setUTCHours(0,0,0,0);
 	return date;
 }

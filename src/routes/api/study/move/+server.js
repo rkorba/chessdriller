@@ -18,7 +18,7 @@ const prisma = new PrismaClient();
  *     reset to first learning step (10 min)
  */
 
-const Max_Review_Interval = 100;
+const Max_Review_Interval = 180;
 
 export async function POST({ request, locals }) {
 
@@ -61,7 +61,6 @@ export async function POST({ request, locals }) {
 
 	// find next step
 
-	const now = new Date(); 
 	let update = {};	
 	if ( ! correct ) {
 		if ( move.learningDueTime || move.reviewInterval == 1 ) {
@@ -115,6 +114,14 @@ export async function POST({ request, locals }) {
 		} else {
 			// move in review
 			update.reviewEase = Math.min(1.618, move.reviewEase); // only to fix old database entries
+
+			// we add 33% of the review interval to now to check if we should increase the interval
+			// or: we increase the interval if the move is almost due
+			let now = new Date();
+			let now2 = new Date();
+			now2.setDate(now.getDate() + move.reviewInterval);
+			now.setTime(now.getTime() + (now2.getTime() - now.getTime()) * 0.3333);
+
 			if ( moveIsDue( move, now ) ) {
 				if ( move.reviewInterval == 0 ) {
 					// this move was previously reset to first review step due to incorrect guess, set interval to 1d

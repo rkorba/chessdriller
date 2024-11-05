@@ -62,7 +62,7 @@ export async function POST({ request, locals }) {
 	// find next step
 
 	const now = new Date(); 
-	let update = {};
+	let update = {};	
 	if ( ! correct ) {
 		if ( move.learningDueTime || move.reviewInterval == 1 ) {
 			// in learning or 1-day review interval: reset to first learning step
@@ -70,7 +70,7 @@ export async function POST({ request, locals }) {
 			update.learningStep = 0;
 			update.reviewDueDate  = null;
 			update.reviewInterval = null;
-			update.reviewEase     = move.reviewEase ? Math.max( 1.3, move.reviewEase - 0.2 ) : null;
+			update.reviewEase     = move.reviewEase ? Math.max( 1.35, move.reviewEase - 0.07 ) : null;
 			interval_value = 0;
 			interval_unit = 'm';
 			interval_increased = false;
@@ -82,7 +82,7 @@ export async function POST({ request, locals }) {
 			update.learningStep = null;
 			update.reviewInterval = 0;
 			update.reviewDueDate   = new Date();
-			update.reviewEase     = move.reviewEase ? Math.max( 1.3, move.reviewEase - 0.2 ) : null;
+			update.reviewEase     = move.reviewEase ? Math.max( 1.35, move.reviewEase - 0.07 ) : null;
 			interval_value = 0;
 			interval_unit = 'd';
 			interval_increased = false;
@@ -105,7 +105,7 @@ export async function POST({ request, locals }) {
 				update.learningStep    = null;
 				update.reviewInterval  = 1;
 				update.reviewDueDate   = date_in_n_days( update.reviewInterval );
-				update.reviewEase      = move.reviewEase || 2.5;
+				update.reviewEase      = move.reviewEase || 1.618;
 				interval_value = update.reviewInterval;
 				interval_unit = 'd';
 				interval_increased = true;
@@ -114,6 +114,7 @@ export async function POST({ request, locals }) {
 			}
 		} else {
 			// move in review
+			update.reviewEase = Math.min(1.618, move.reviewEase); // only to fix old database entries
 			if ( moveIsDue( move, now ) ) {
 				if ( move.reviewInterval == 0 ) {
 					// this move was previously reset to first review step due to incorrect guess, set interval to 1d

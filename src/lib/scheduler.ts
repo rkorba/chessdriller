@@ -59,12 +59,16 @@ export async function getLineForStudy( repertoire: Move[], now: Date, lastLineId
 
 	const InitialFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq';
 
-	// No due moves: short-circuit 
-	const dueMoves = repertoire.filter( m => moveIsDue(m,now) );
+	let  dueMoves = repertoire.filter( m => moveIsDue(m,now) );
 	const num_due_moves = dueMoves.length;
+
+	// No due moves: short-circuit
 	if ( num_due_moves == 0 ) {
 		return { line: [], start_ix: 0, due_ix: [], num_due_moves: 0 };
 	}
+
+	if( dueMoves.filter( m => !isNewMove(m)).length > 0 )
+                dueMoves = dueMoves.filter( m => !isNewMove(m) );
 
 	// Populate line with last line
 	let line: Move[] = [];
@@ -250,6 +254,10 @@ export function moveIsDue( move: Move, now: Date ) {
 	} else {
 		throw new Error( 'invalid move own/learning/review state in moveIsDue for move #'+move.id );
 	}
+}
+
+function isNewMove( move: Move) {
+        return !move.reviewDueDate && !move.learningStep;
 }
 
 function randomElement( arr: any[] ) {

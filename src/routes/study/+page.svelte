@@ -61,6 +61,7 @@
 		}
 		return pairs;
 	}
+	$: current_fen = line && last_move_ix+1 < line.length ? line[last_move_ix+1].toFen : '';
 	$: move_pairs = line ? pair_moves( line ) : [];
 	$: move_pairs_to_display = !line || last_move_ix == -1 && line[0].ownMove ? []
 	                           : move_pairs.slice(0, Math.ceil(last_move_ix/2)+1 );
@@ -272,6 +273,7 @@
 
 		<div style="text-align:center;">
 			{#if line}
+				<br/>{current_fen}<br/>
 				<MoveSheet move_pairs={move_pairs_to_display}/>
 			{/if}
 		</div>

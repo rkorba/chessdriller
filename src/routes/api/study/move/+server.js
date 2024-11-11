@@ -113,7 +113,6 @@ export async function POST({ request, locals }) {
 			}
 		} else {
 			// move in review
-			update.reviewEase = Math.min(1.618, move.reviewEase); // only to fix old database entries
 
 			// we add 33% of the review interval to now to check if we should increase the interval
 			// or: we increase the interval if the move is almost due

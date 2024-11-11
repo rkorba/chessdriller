@@ -77,7 +77,7 @@
 	function stepOneMoveForward() {
 		const chess_move = chess.move( line[current_move_i].moveSan );
 		chessground.move( chess_move.from, chess_move.to );
-		if ( chess_move.flags.includes('e') ) {
+		if ( chess_move.flags.includes('e') || chess_move.flags.includes('p') ) {
 			// en passant: update board since chessground doesn't remove the captured pawn
 			chessground.set({ fen: chess.fen() });
 		}
@@ -95,7 +95,21 @@
 	}
 
 	function checkMove( orig, dest ) {
-		const chess_move = chess.move( { from: orig, to: dest } );
+
+		const chess_moves = chess.moves( { verbose: true } ).filter( x => x.from === orig && x.to === dest );
+		if(chess_moves.length == 0) {
+			throw new Error( 'No legal move for: orig ' + orig + ', dest ' + dest );
+		}
+
+		let selected_move = chess_moves[0];
+		// if there are many possible moves because of promotion then autoselect the correct move
+		for ( let i = 1; i < chess_moves.length; ++i ) {
+			if(chess_moves[i].san == line[current_move_i].moveSan)
+				selected_move = chess_moves[i];
+		}
+
+		const chess_move = chess.move( selected_move );
+
 		let result;
 		if ( chess_move.san === line[current_move_i].moveSan ) {
 			result = 'correct';
@@ -141,7 +155,7 @@
 			const turnColor = chess.turn() === 'w' ? 'white' : 'black';
 			chessground.set({ turnColor: turnColor });
 			chessground.setAutoShapes( [] );
-			if ( chess_move.flags.includes('e') ) {
+			if ( chess_move.flags.includes('e') || chess_move.flags.includes('p') ) {
 				// en passant: update board since chessground doesn't remove the captured pawn
 				setTimeout( ()=>{ chessground.set({ fen: chess.fen() }) }, 200 );
 			}
